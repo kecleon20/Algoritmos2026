@@ -1,0 +1,42 @@
+from tda_cola import crear_cola, arribo, atencion, cola_vacia, en_frente, tamanio, mover_al_final, barrido
+
+def es_vocal(c):
+    """Devuelve True si c es vocal (mayúscula o minúscula)."""
+    return c.lower() in 'aeiou'
+
+def eliminar_vocales(cola):
+    """
+    Elimina todas las vocales de una cola de caracteres.
+    Modifica la cola original.
+    """
+    n = tamanio(cola)
+    i = 0
+    
+    while i < n:
+        dato = en_frente(cola)
+        
+        if es_vocal(dato):
+            # Es vocal: la descartamos (no la movemos al final)
+            atencion(cola)
+        else:
+            # No es vocal: la movemos al final
+            mover_al_final(cola)
+        
+        i += 1
+    
+    return cola
+
+
+# ========== EJEMPLO DE PRUEBA ==========
+if __name__ == "__main__":
+    c = crear_cola()
+    
+    for letra in ['a', 'b', 'c', 'e', 'f', 'i', 'o', 'x', 'u']:
+        arribo(c, letra)
+    
+    print("Cola original:")
+    barrido(c)  # a b c e f i o x u
+    
+    print("\nCola después de eliminar vocales:")
+    eliminar_vocales(c)
+    barrido(c)  # b c f x
