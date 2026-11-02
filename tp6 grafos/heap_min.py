@@ -1,5 +1,3 @@
-
-
 class Heap:
 
     def __init__(self):
@@ -80,4 +78,3 @@ class Heap:
 # print()
 # while cola.size() > 0:
 #     print(cola.atention())
-
