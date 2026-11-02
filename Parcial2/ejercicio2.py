@@ -1,6 +1,6 @@
+import json
 from lista import Lista
 from heap_min import Heap
-from starwars_db import PERSONAJES, ARISTAS
 
 # ==============================================================================
 # CLASE GRAFO INTEGRADA
@@ -114,6 +114,20 @@ class Graph(Lista):
         return forest[from_vertex] if from_vertex is not None else forest
 
 # ==============================================================================
+# CARGA DE DATOS DESDE JSON
+# ==============================================================================
+ARCHIVO_JSON = "starwars_db.json"
+
+def cargar_datos_starwars(archivo):
+    try:
+        with open(archivo, 'r', encoding='utf-8') as f:
+            datos = json.load(f)
+        return datos['personajes'], datos['aristas']
+    except FileNotFoundError:
+        print(f"Error: No se encontró el archivo {archivo}.")
+        return [], []
+
+# ==============================================================================
 # RESOLUCIÓN DE CONSIGNAS
 # ==============================================================================
 
@@ -121,116 +135,119 @@ print("="*70)
 print("--- 1. CARGA DEL GRAFO ---")
 print("="*70)
 
-grafo_sw = Graph(is_dir=False)
+PERSONAJES, ARISTAS = cargar_datos_starwars(ARCHIVO_JSON)
 
-for personaje in PERSONAJES:
-    grafo_sw.add_vertex(personaje)
-
-for arista in ARISTAS:
-    peso, origen, destino = arista
-    grafo_sw.add_edge(peso, origen, destino)
-
-print(f"Grafo cargado exitosamente con {len(PERSONAJES)} personajes y {len(ARISTAS)} relaciones.")
-
-
-print("\n" + "="*70)
-print("--- 2. ÁRBOL DE EXPANSIÓN MÍNIMO (AEM) ---")
-print("="*70)
-# Como Kruskal devuelve un string con el bosque, lo procesamos
-aem = grafo_sw.kruskal("C-3PO")
-print("Árbol de Expansión Mínimo (Kruskal):")
-# Validación de seguridad para que no explote al separar
-peso_total = 0
-if isinstance(aem, str):
-    for edge in aem.split(';'):
-        if edge:
-            partes = edge.split('-')
-            if len(partes) == 3:
-                origen, destino, peso = partes
-                peso_total += int(peso)
-                print(f"  - {origen} <-> {destino} (Peso: {peso})")
-            else:
-                print(f"  - Nodo: {edge}")
-print(f"Peso total del AEM: {peso_total}")
-
-
-print("\n" + "="*70)
-print("--- 3. MÁXIMO DE EPISODIOS COMPARTIDOS ---")
-print("="*70)
-max_peso = -1
-pares_maximos = []
-
-for i in range(grafo_sw.size()):
-    vertice = grafo_sw.get_element_by_index(i)
-    for j in range(vertice.edges.size()):
-        arista = vertice.edges.get_element_by_index(j)
-        if vertice.value < arista.destination:
-            if arista.weight > max_peso:
-                max_peso = arista.weight
-                pares_maximos = [(vertice.value, arista.destination)]
-            elif arista.weight == max_peso:
-                pares_maximos.append((vertice.value, arista.destination))
-
-print(f"El número máximo de episodios compartidos es: {max_peso}")
-print("Pares de personajes que coinciden en esa cantidad:")
-for par in pares_maximos:
-    print(f"  - {par[0]} y {par[1]}")
-
-
-print("\n" + "="*70)
-print("--- 4. CAMINOS MÁS CORTOS (Dijkstra) ---")
-print("="*70)
-
-def mostrar_camino(origen, destino):
-    caminos = grafo_sw.dijkstra(origen)
-    encontrado = False
-    costo_total = 0
-    camino_inverso = []
-    
-    for paso in caminos:
-        if paso[0] == destino:
-            encontrado = True
-            costo_total = paso[1]
-            camino_inverso.append(paso[0])
-            predecesor = paso[2]
-            break
-            
-    if encontrado:
-        while predecesor is not None:
-            camino_inverso.append(predecesor)
-            for paso in caminos:
-                if paso[0] == predecesor:
-                    predecesor = paso[2]
-                    break
-        camino_inverso.reverse()
-        print(f"Camino más corto de {origen} a {destino}:")
-        print(f"  Ruta: {' -> '.join(camino_inverso)}")
-        print(f"  Costo (episodios): {costo_total}")
-    else:
-        print(f"No se encontró camino de {origen} a {destino}.")
-
-mostrar_camino("C-3PO", "R2-D2")
-print()
-mostrar_camino("Yoda", "Darth Vader")
-
-
-print("\n" + "="*70)
-print("--- 5. PERSONAJES QUE APARECIERON EN LOS 9 EPISODIOS ---")
-print("="*70)
-personajes_9_episodios = set()
-
-for i in range(grafo_sw.size()):
-    vertice = grafo_sw.get_element_by_index(i)
-    for j in range(vertice.edges.size()):
-        arista = vertice.edges.get_element_by_index(j)
-        if arista.weight == 9:
-            personajes_9_episodios.add(vertice.value)
-
-if personajes_9_episodios:
-    print("Personajes que aparecieron en los 9 episodios:")
-    for p in sorted(personajes_9_episodios):
-        print(f"  - {p}")
+if not PERSONAJES:
+    print("No se pudieron cargar los datos. Verifica el archivo JSON.")
 else:
-    print("Ningún personaje apareció en los 9 episodios.")
+    grafo_sw = Graph(is_dir=False)
 
-print("\n" + "="*70)
+    for personaje in PERSONAJES:
+        grafo_sw.add_vertex(personaje)
+
+    for arista in ARISTAS:
+        peso, origen, destino = arista
+        grafo_sw.add_edge(peso, origen, destino)
+
+    print(f"Grafo cargado exitosamente con {len(PERSONAJES)} personajes y {len(ARISTAS)} relaciones.")
+
+
+    print("\n" + "="*70)
+    print("--- 2. ÁRBOL DE EXPANSIÓN MÍNIMO (AEM) ---")
+    print("="*70)
+    aem = grafo_sw.kruskal("C-3PO")
+    print("Árbol de Expansión Mínimo (Kruskal):")
+    peso_total = 0
+    if isinstance(aem, str):
+        for edge in aem.split(';'):
+            if edge:
+                partes = edge.split('-')
+                if len(partes) == 3:
+                    origen, destino, peso = partes
+                    peso_total += int(peso)
+                    print(f"  - {origen} <-> {destino} (Peso: {peso})")
+                else:
+                    print(f"  - Nodo: {edge}")
+    print(f"Peso total del AEM: {peso_total}")
+
+
+    print("\n" + "="*70)
+    print("--- 3. MÁXIMO DE EPISODIOS COMPARTIDOS ---")
+    print("="*70)
+    max_peso = -1
+    pares_maximos = []
+
+    for i in range(grafo_sw.size()):
+        vertice = grafo_sw.get_element_by_index(i)
+        for j in range(vertice.edges.size()):
+            arista = vertice.edges.get_element_by_index(j)
+            if vertice.value < arista.destination:
+                if arista.weight > max_peso:
+                    max_peso = arista.weight
+                    pares_maximos = [(vertice.value, arista.destination)]
+                elif arista.weight == max_peso:
+                    pares_maximos.append((vertice.value, arista.destination))
+
+    print(f"El número máximo de episodios compartidos es: {max_peso}")
+    print("Pares de personajes que coinciden en esa cantidad:")
+    for par in pares_maximos:
+        print(f"  - {par[0]} y {par[1]}")
+
+
+    print("\n" + "="*70)
+    print("--- 4. CAMINOS MÁS CORTOS (Dijkstra) ---")
+    print("="*70)
+
+    def mostrar_camino(origen, destino):
+        caminos = grafo_sw.dijkstra(origen)
+        encontrado = False
+        costo_total = 0
+        camino_inverso = []
+        
+        for paso in caminos:
+            if paso[0] == destino:
+                encontrado = True
+                costo_total = paso[1]
+                camino_inverso.append(paso[0])
+                predecesor = paso[2]
+                break
+                
+        if encontrado:
+            while predecesor is not None:
+                camino_inverso.append(predecesor)
+                for paso in caminos:
+                    if paso[0] == predecesor:
+                        predecesor = paso[2]
+                        break
+            camino_inverso.reverse()
+            print(f"Camino más corto de {origen} a {destino}:")
+            print(f"  Ruta: {' -> '.join(camino_inverso)}")
+            print(f"  Costo (episodios): {costo_total}")
+        else:
+            print(f"No se encontró camino de {origen} a {destino}.")
+
+    mostrar_camino("C-3PO", "R2-D2")
+    print()
+    mostrar_camino("Yoda", "Darth Vader")
+
+
+    print("\n" + "="*70)
+    print("--- 5. PERSONAJES QUE APARECIERON EN LOS 9 EPISODIOS ---")
+    print("="*70)
+    personajes_9_episodios = set()
+
+    for i in range(grafo_sw.size()):
+        vertice = grafo_sw.get_element_by_index(i)
+        for j in range(vertice.edges.size()):
+            arista = vertice.edges.get_element_by_index(j)
+            if arista.weight == 9:
+                personajes_9_episodios.add(vertice.value)
+
+    if personajes_9_episodios:
+        print("Personajes que aparecieron en los 9 episodios:")
+        for p in sorted(personajes_9_episodios):
+            print(f"  - {p}")
+    else:
+        print("Ningún personaje apareció en los 9 episodios.")
+
+    print("\n" + "="*70)
