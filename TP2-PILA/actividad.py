@@ -2,6 +2,7 @@ from pila import Pila
 import random
 pila = Pila()
 pila1 = Pila()
+
 for n in range(5):
     pila.apilar(random.randint(1,50))
 

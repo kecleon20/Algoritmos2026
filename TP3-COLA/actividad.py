@@ -1,7 +1,6 @@
 # ejercicios a entregar 10 16 22 
 from cola import Cola 
 from pila import Pila
-from heap import Heap
 
 # actividad 10 
 notificaciones = [
